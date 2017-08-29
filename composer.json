@@ -1,0 +1,15 @@
+{
+  "name": "cadmus/api",
+  "authors": [
+    {
+      "name": "WreWolf",
+      "email": "wrewolf@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-0": {
+      "Cadmus\\API": "src"
+    }
+  },
+  "minimum-stability": "dev-master"
+}
