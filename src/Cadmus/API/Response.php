@@ -33,7 +33,7 @@
   
     public function setResponse($response)
     {
-      $this->response = $response;
+      $this->response = json_decode($response, true);
     }
     
     /**

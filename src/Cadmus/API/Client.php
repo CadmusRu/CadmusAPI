@@ -73,6 +73,57 @@
       
       return $r;
     }
+    
+    /**
+     * @param string $api
+     * @param array  $arguments
+     *
+     * @return \Cadmus\API\Response
+     */
+    private function get($api, $arguments = [])
+    {
+      $arguments["token"] = $this->token;
+      
+      // $url = "http://apis.cadmus.ru/" . $api . "?token=" . $this->token;
+      $query = [];
+      foreach ($arguments as $argument => $value)
+      {
+        $query[] = $argument . "=" . urlencode($value);
+      }
+      $query = implode("&", $query);
+      $url = "http://apis.cadmus.ru/" . $api . "?" . $query;
+      
+      $handle = curl_init($url);
+      
+      curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
+      curl_setopt($handle, CURLOPT_TIMEOUT, $this->request_timeout);
+      curl_setopt($handle, CURLOPT_CERTINFO, 1);
+      
+      $response = curl_exec($handle);
+      
+      $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+      $osErrNo = curl_getinfo($handle, CURLINFO_OS_ERRNO);
+      $certInfo = curl_getinfo($handle, CURLINFO_CERTINFO);
+      
+      $r = new Response();
+      $r->setResponse($response);
+      $r->setHttpCode($httpCode);
+      $r->setOsErrNo($osErrNo);
+      $r->setCertinfo($certInfo);
+      
+      return $r;
+    }
+    
+    static function file($file)
+    {
+      if (!file_exists($file))
+      {
+        throw new Exception("File '$file' is not exists.");
+      }
+      
+      return curl_file_create($file);
+    }
   }
 
 
