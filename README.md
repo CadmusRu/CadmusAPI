@@ -12,17 +12,13 @@ CadmusApi hub client library
   
   include_once("vendor/autoload.php");
   
-  # params for API
-  $API_KEY = "01904164d2e2db20400612e9d70d24b3dc2db17567ec92cb93c51b87697793c1"; # Your API key (as example DEMO-key)
-  $URL = "pg/demo"; # owner/api_name
-  $PARAMETERS = ["assoc" => "array", "of" => "parameters"];
-  
-  
-  $cadmusApi = new Client($API_KEY);
-  
+  $api = new Client("01904164d2e2db20400612e9d70d24b3dc2db17567ec92cb93c51b87697793c1"); // Подключение к платформе с помощью ключа API
   try
   {
-    $response = $cadmusApi->call($URL, $PARAMETERS);
+    $response = $api->call("pg/qr.decode", [ // Название API
+      "assoc" => "array", // Параметры API
+      "of" => "parameters"
+    ]);
     
     $response = $response->getResponse();
     if(isset($response['result'])){
