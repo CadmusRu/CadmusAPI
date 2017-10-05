@@ -12,13 +12,17 @@ CadmusApi hub client library
   
   include_once("vendor/autoload.php");
   
-  $cadmusApi = new Client("Your API key");
+  # params for API
+  $API_KEY = "Your API key";
+  $URL = "owner/api_name";
+  $PARAMETERS = ["assoc" => "array", "of" => "parameters"];
+  
+  
+  $cadmusApi = new Client($API_KEY);
   
   try
   {
-    $response = $cadmusApi->call("owner/api_name", 
-      ["array" => "parameters"]
-    );
+    $response = $cadmusApi->call($URL, $PARAMETERS);
     
     $response = $response->getResponse();
     if(isset($response['result'])){
