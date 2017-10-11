@@ -2,6 +2,8 @@
   
   namespace Cadmus\API;
   
+  use Buzz\Browser;
+  use Buzz\Message\Request;
   use Exception;
   
   class Client
@@ -18,7 +20,7 @@
     /**
      * Client constructor.
      *
-     * @param string $token
+     * @param string $token Base58 encoded
      * @param int    $connect_timeout
      * @param int    $request_timeout
      *
@@ -26,6 +28,8 @@
      */
     function __construct($token, $connect_timeout = 3, $request_timeout = 10)
     {
+      $token = Base58::decode($token);
+      
       if (strlen($token) != 64)
       {
         throw new Exception("Wrong token length.");
@@ -73,6 +77,25 @@
       
       return $r;
     }
+  
+    /**
+     * @param string $api
+     * @param string $request_array
+     *
+     * @return \Cadmus\API\Response
+     */
+    public function postBuzz($api, $request_array)
+    {
+      $buzz = new Browser();
+      $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
+      $url = "http://apis.cadmus.ru/" . $api;
+      $request = new Request(Request::METHOD_POST, $api, $url);
+      $response = $buzz->post($url, [], $request);
+      
+      $ret = new Response();
+      $ret->setResponse($response->getContent());
+      return $ret;
+    }
     
     /**
      * @param string $api
@@ -80,7 +103,7 @@
      *
      * @return \Cadmus\API\Response
      */
-    private function get($api, $arguments = [])
+    public function get($api, $arguments = [])
     {
       $arguments["token"] = $this->token;
       

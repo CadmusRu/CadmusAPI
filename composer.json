@@ -2,7 +2,8 @@
   "name": "cadmus/api",
   "description": "CadmusApi hub client library",
   "require": {
-    "php": "^5.3.3 || ^7.0"
+    "php": "^5.3.3 || ^7.0",
+    "kriswallsmith/buzz": "dev-master"
   },
   "authors": [
     {
