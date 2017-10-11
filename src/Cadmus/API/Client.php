@@ -28,7 +28,8 @@
      */
     function __construct($token, $connect_timeout = 3, $request_timeout = 10)
     {
-      $token = Base58::decode($token);
+//      $base58 = new \StephenHill\Base58();
+//      $token = $base58->decode($token);
       
       if (strlen($token) != 64)
       {
@@ -80,7 +81,7 @@
   
     /**
      * @param string $api
-     * @param string $request_array
+     * @param array $request_array
      *
      * @return \Cadmus\API\Response
      */
@@ -89,7 +90,9 @@
       $buzz = new Browser();
       $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
       $url = "http://apis.cadmus.ru/" . $api;
-      $request = new Request(Request::METHOD_POST, $api, $url);
+      
+      $request_array["token"] = $this->token;
+      $request=http_build_query($request_array);
       $response = $buzz->post($url, [], $request);
       
       $ret = new Response();

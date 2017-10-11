@@ -3,7 +3,8 @@
   "description": "CadmusApi hub client library",
   "require": {
     "php": "^5.3.3 || ^7.0",
-    "kriswallsmith/buzz": "dev-master"
+    "stephenhill/base58": "~1.0",
+    "kriswallsmith/buzz": "@dev"
   },
   "authors": [
     {
