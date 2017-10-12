@@ -99,6 +99,34 @@
       $ret->setResponse($response->getContent());
       return $ret;
     }
+  
+    /**
+     * @param string $api
+     * @param array $arguments
+     *
+     * @return \Cadmus\API\Response
+     */
+    public function getBuzz($api, $arguments)
+    {
+      $arguments["token"] = $this->token;
+      
+      $query = [];
+      foreach ($arguments as $argument => $value)
+      {
+        $query[] = $argument . "=" . urlencode($value);
+      }
+      $query = implode("&", $query);
+      $url = "http://apis.cadmus.ru/" . $api . "?" . $query;
+      
+      $buzz = new Browser();
+      $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
+    
+      $response = $buzz->get($url);
+    
+      $ret = new Response();
+      $ret->setResponse($response->getContent());
+      return $ret;
+    }
     
     /**
      * @param string $api
