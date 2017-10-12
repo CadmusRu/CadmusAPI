@@ -9,28 +9,13 @@
   namespace Cadmus\API;
   
   
+  use Buzz\Message\MessageInterface;
+  
   class Response
   {
     private $response;
-    private $httpCode;
-    private $osErrNo;
-    private $certInfo;
-  
-    public function setCertinfo($certInfo)
-    {
-      $this->certInfo = $certInfo;
-    }
-  
-    public function setOsErrNo($osErrNo)
-    {
-      $this->osErrNo = $osErrNo;
-    }
-  
-    public function setHttpCode($httpCode)
-    {
-      $this->httpCode = $httpCode;
-    }
-  
+    private $header;
+    
     public function setResponse($response)
     {
       $this->response = json_decode($response, true);
@@ -45,26 +30,32 @@
     }
     
     /**
-     * @return mixed
+     * Response constructor.
+     *
+     * @param \Buzz\Message\MessageInterface $response
      */
-    public function getOsErrNo()
+    public function __construct(MessageInterface $response = null)
     {
-      return $this->osErrNo;
+      if ($response != null)
+      {
+        $this->header = $response->getHeaders();
+        $this->setResponse($response->getContent());
+      }
     }
     
     /**
-     * @return mixed
+     * @return array
      */
-    public function getHttpCode()
+    public function getHeader(): array
     {
-      return $this->httpCode;
+      return $this->header;
     }
     
     /**
-     * @return mixed
+     * @param array $header
      */
-    public function getCertInfo()
+    public function setHeader(array $header)
     {
-      return $this->certInfo;
+      $this->header = $header;
     }
   }

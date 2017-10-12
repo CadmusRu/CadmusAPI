@@ -3,6 +3,7 @@
   namespace Cadmus\API;
   
   use Buzz\Browser;
+  use Buzz\Message\Form\FormRequest;
   use Buzz\Message\Request;
   use Exception;
   
@@ -16,11 +17,10 @@
     const ASYNC_ON = 0;
     const ASYNC_OFF = 1;
     
-    
     /**
      * Client constructor.
      *
-     * @param string $token Base58 encoded
+     * @param string $token
      * @param int    $connect_timeout
      * @param int    $request_timeout
      *
@@ -28,9 +28,6 @@
      */
     function __construct($token, $connect_timeout = 3, $request_timeout = 10)
     {
-//      $base58 = new \StephenHill\Base58();
-//      $token = $base58->decode($token);
-      
       if (strlen($token) != 64)
       {
         throw new Exception("Wrong token length.");
@@ -52,7 +49,6 @@
     {
       $arguments["token"] = $this->token;
       
-      // $url = "http://apis.cadmus.ru/" . $api . "?token=" . $this->token;
       $url = "http://apis.cadmus.ru/" . $api;
       
       $handle = curl_init($url);
@@ -72,59 +68,41 @@
       
       $r = new Response();
       $r->setResponse($response);
-      $r->setHttpCode($httpCode);
-      $r->setOsErrNo($osErrNo);
-      $r->setCertinfo($certInfo);
-      
       return $r;
     }
   
     /**
      * @param string $api
-     * @param array $request_array
+     * @param array  $request_array
+     * @param array  $headers
      *
      * @return \Cadmus\API\Response
      */
-    public function postBuzz($api, $request_array)
+    public function post($api, $request_array, $headers = [])
     {
+      $headers[]='X-Version: 0.1a';
       $buzz = new Browser();
       $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
-      $url = "http://apis.cadmus.ru/" . $api;
       
-      $request_array["token"] = $this->token;
-      $request=http_build_query($request_array);
-      $response = $buzz->post($url, [], $request);
-      
-      $ret = new Response();
-      $ret->setResponse($response->getContent());
-      return $ret;
-    }
-  
-    /**
-     * @param string $api
-     * @param array $arguments
-     *
-     * @return \Cadmus\API\Response
-     */
-    public function getBuzz($api, $arguments)
-    {
-      $arguments["token"] = $this->token;
-      
-      $query = [];
-      foreach ($arguments as $argument => $value)
+      $request = new FormRequest();
+      $request->setMethod('POST');
+      // Заполняем массив из полученных данных
+      $request->setField('get_a_file', 0); // Перед циклом, что бы можно было затереть
+      foreach ($request_array as $item => $value)
       {
-        $query[] = $argument . "=" . urlencode($value);
+        $request->setField($item, $value);
       }
-      $query = implode("&", $query);
-      $url = "http://apis.cadmus.ru/" . $api . "?" . $query;
+      // После цикла, token зарезервировано
+      $request->setField("token", $this->token);
       
-      $buzz = new Browser();
-      $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
-    
-      $response = $buzz->get($url);
-    
-      $ret = new Response();
-      $ret->setResponse($response->getContent());
+      $request->setHeaders($headers);
+      $request->setHost('http://apis.cadmus.ru/');
+      $request->setResource($api);
+      
+      $response = $buzz->send($request, null);
+      
+      $ret = new Response($response);
+      
       return $ret;
     }
     
@@ -134,11 +112,10 @@
      *
      * @return \Cadmus\API\Response
      */
-    public function get($api, $arguments = [])
+    public function get($api, $arguments)
     {
       $arguments["token"] = $this->token;
       
-      // $url = "http://apis.cadmus.ru/" . $api . "?token=" . $this->token;
       $query = [];
       foreach ($arguments as $argument => $value)
       {
@@ -147,36 +124,15 @@
       $query = implode("&", $query);
       $url = "http://apis.cadmus.ru/" . $api . "?" . $query;
       
-      $handle = curl_init($url);
+      $buzz = new Browser();
+      $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
       
-      curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
-      curl_setopt($handle, CURLOPT_TIMEOUT, $this->request_timeout);
-      curl_setopt($handle, CURLOPT_CERTINFO, 1);
+      $response = $buzz->get($url);
       
-      $response = curl_exec($handle);
+      $ret = new Response();
+      $ret->setResponse($response->getContent());
       
-      $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-      $osErrNo = curl_getinfo($handle, CURLINFO_OS_ERRNO);
-      $certInfo = curl_getinfo($handle, CURLINFO_CERTINFO);
-      
-      $r = new Response();
-      $r->setResponse($response);
-      $r->setHttpCode($httpCode);
-      $r->setOsErrNo($osErrNo);
-      $r->setCertinfo($certInfo);
-      
-      return $r;
-    }
-    
-    static function file($file)
-    {
-      if (!file_exists($file))
-      {
-        throw new Exception("File '$file' is not exists.");
-      }
-      
-      return curl_file_create($file);
+      return $ret;
     }
   }
 
