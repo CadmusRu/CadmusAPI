@@ -68,9 +68,10 @@
       
       $r = new Response();
       $r->setResponse($response);
+      
       return $r;
     }
-  
+    
     /**
      * @param string $api
      * @param array  $request_array
@@ -80,7 +81,7 @@
      */
     public function post($api, $request_array, $headers = [])
     {
-      $headers[]='X-Version: 0.1a';
+      $headers[] = 'X-Version: 0.1a';
       $buzz = new Browser();
       $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
       
@@ -133,6 +134,35 @@
       $ret->setResponse($response->getContent());
       
       return $ret;
+    }
+    
+    /**
+     * @param string $api
+     * @param array  $arguments
+     *
+     * @return mixed FileContent
+     */
+    public function getFile($api, $arguments)
+    {
+      $arguments["token"] = $this->token;
+      $arguments["get_a_file"] = 1;
+      $query = [];
+      
+      foreach ($arguments as $argument => $value)
+      {
+        $query[] = $argument . "=" . urlencode($value);
+      }
+      $query = implode("&", $query);
+      $url = "http://apis.cadmus.ru/" . $api . "?" . $query;
+      
+      $buzz = new Browser();
+      $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
+      
+      $response = $buzz->get($url);
+      
+      $ret = new Response();
+      
+      return $response->getContent();
     }
   }
 
