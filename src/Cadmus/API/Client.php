@@ -41,35 +41,14 @@
     
     /**
      * @param string $api
-     * @param array  $arguments
+     * @param array  $request_array
+     * @param array  $headers
      *
      * @return \Cadmus\API\Response
      */
-    public function call($api, $arguments = [])
+    public function call($api, $request_array, $headers = [])
     {
-      $arguments["token"] = $this->token;
-      
-      $url = "http://apis.cadmus.ru/" . $api;
-      
-      $handle = curl_init($url);
-      
-      curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
-      curl_setopt($handle, CURLOPT_TIMEOUT, $this->request_timeout);
-      curl_setopt($handle, CURLOPT_CERTINFO, 1);
-      curl_setopt($handle, CURLOPT_POST, true);
-      curl_setopt($handle, CURLOPT_POSTFIELDS, $arguments);
-      
-      $response = curl_exec($handle);
-      
-      $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-      $osErrNo = curl_getinfo($handle, CURLINFO_OS_ERRNO);
-      $certInfo = curl_getinfo($handle, CURLINFO_CERTINFO);
-      
-      $r = new Response();
-      $r->setResponse($response);
-      
-      return $r;
+      return $this->post($api, $request_array, $headers);
     }
     
     /**
@@ -88,7 +67,11 @@
       $request = new FormRequest();
       $request->setMethod('POST');
       // Заполняем массив из полученных данных
-      $request->setField('get_a_file', 0); // Перед циклом, что бы можно было затереть
+      
+      if (!isset($request_array['get_a_file']))
+      {
+        $request_array['get_a_file'] = 1;
+      }
       foreach ($request_array as $item => $value)
       {
         $request->setField($item, $value);
@@ -106,39 +89,6 @@
       
       return $ret;
     }
-  
-    /**
-     * @param string $api
-     * @param array  $request_array
-     * @param array  $headers
-     *
-     * @return mixed
-     */
-    public function postFile($api, $request_array, $headers = [])
-    {
-      $headers[] = 'X-Version: 0.1a';
-      $buzz = new Browser();
-      $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
-    
-      $request = new FormRequest();
-      $request->setMethod('POST');
-      // Заполняем массив из полученных данных
-      $request->setField('get_a_file', true); // Перед циклом, что бы можно было затереть
-      foreach ($request_array as $item => $value)
-      {
-        $request->setField($item, $value);
-      }
-      // После цикла, token зарезервировано
-      $request->setField("token", $this->token);
-    
-      $request->setHeaders($headers);
-      $request->setHost('http://apis.cadmus.ru/');
-      $request->setResource($api);
-    
-      $response = $buzz->send($request, null);
-    
-      return $response;
-    }
     
     /**
      * @param string $api
@@ -149,7 +99,10 @@
     public function get($api, $arguments)
     {
       $arguments["token"] = $this->token;
-      
+      if (!isset($arguments["get_a_file"]))
+      {
+        $arguments["get_a_file"] = 1;
+      }
       $query = [];
       foreach ($arguments as $argument => $value)
       {
@@ -167,34 +120,6 @@
       $ret->setResponse($response->getContent());
       
       return $ret;
-    }
-    
-    /**
-     * @param string $api
-     * @param array  $arguments
-     *
-     * @return mixed FileContent
-     */
-    public function getFile($api, $arguments)
-    {
-      $arguments["token"] = $this->token;
-      $arguments["get_a_file"] = true;
-      $query = [];
-      
-      foreach ($arguments as $argument => $value)
-      {
-        $query[] = $argument . "=" . urlencode($value);
-      }
-      $query = implode("&", $query);
-      $url = "http://apis.cadmus.ru/" . $api . "?" . $query;
-      $buzz = new Browser();
-      $buzz->getClient()->setTimeout($this->request_timeout + $this->connect_timeout);
-      
-      $response = $buzz->get($url);
-      
-      $ret = new Response();
-      
-      return $response->getContent();
     }
   }
 
