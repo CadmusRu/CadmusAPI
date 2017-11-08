@@ -12,7 +12,7 @@
     private $token;
     private $connect_timeout;
     private $request_timeout;
-    
+    private $error;
     
     const ASYNC_ON = 0;
     const ASYNC_OFF = 1;
@@ -44,11 +44,23 @@
      * @param array  $request_array
      * @param array  $headers
      *
-     * @return \Cadmus\API\Response
+     * @return mixed
      */
     public function call($api, $request_array, $headers = [])
     {
-      return $this->post($api, $request_array, $headers);
+      try
+      {
+        $response = $this->post($api, $request_array, $headers);
+        $this->error = false;
+        
+        return $response->getResponse();
+      }
+      catch (Exception $e)
+      {
+        $this->error = $e->getMessage();
+        
+        return false;
+      }
     }
     
     /**
@@ -120,6 +132,14 @@
       $ret->setResponse($response->getContent());
       
       return $ret;
+    }
+  
+    /**
+     * @return mixed
+     */
+    public function getError()
+    {
+      return $this->error;
     }
   }
 
